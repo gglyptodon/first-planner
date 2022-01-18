@@ -1,0 +1,30 @@
+[package]
+version = "0.0.1"
+name = "first-planner"
+repository = "https://github.com/gglyptodon/first-planner/"
+authors = ["Janina Mass <janina.mass@gmail.com>"]
+description = "Minimal Web App for displaying running workouts"
+categories = []
+license = "MIT"
+readme = "./README.md"
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.18"
+
+[dependencies]
+seed = "0.8.0"
+chrono = "0.4.19"
+clap = { version = "3.0.7", features = ["derive"] }
+csv = "1.1.6"
+
+[profile.release]
+lto = true
+opt-level = 'z'
+codegen-units = 1
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ['-Os']
