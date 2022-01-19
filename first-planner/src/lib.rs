@@ -14,8 +14,8 @@ use std::fmt::Formatter;
 
 // `init` describes what should happen when your app started.
 fn init(url: Url, _: &mut impl Orders<Msg>) -> Model {
-    let custom_pace_min = url.search().get("min").clone();
-    let custom_pace_sec = url.search().get("sec").clone();
+    let custom_pace_min = url.search().get("min");
+    let custom_pace_sec = url.search().get("sec");
     let mut tmp_dur_min: i64 = 5;
     let mut tmp_dur_sec: i64 = 0;
     if let Some(x) = custom_pace_min {
@@ -34,7 +34,7 @@ fn init(url: Url, _: &mut impl Orders<Msg>) -> Model {
         url,
         base_pace: Duration::minutes(tmp_dur_min)
             .checked_add(&Duration::seconds(tmp_dur_sec))
-            .unwrap_or(Duration::minutes(5)),
+            .unwrap_or_else(|| Duration::minutes(5)),
     }
 }
 
@@ -128,34 +128,33 @@ fn interval_table<T: 'static>(model: &Model) -> Node<T> {
             th!["2k"],
         ],
         tr![
-            td![format!(
-                "{}",
+            td![
+
                 calc_paces(&model.base_pace, &PaceCategory::M400).print_pace_formatted()
-            )],
-            td![format!(
-                "{}",
+            ],
+            td![
+
                 calc_paces(&model.base_pace, &PaceCategory::M600).print_pace_formatted()
-            )],
-            td![format!(
-                "{}",
+            ],
+            td![
+
                 calc_paces(&model.base_pace, &PaceCategory::M800).print_pace_formatted()
-            )],
-            td![format!(
-                "{}",
+            ],
+            td![
+
                 calc_paces(&model.base_pace, &PaceCategory::K1).print_pace_formatted()
-            )],
-            td![format!(
-                "{}",
+            ],
+            td![
+
                 calc_paces(&model.base_pace, &PaceCategory::M1200).print_pace_formatted()
-            )],
-            td![format!(
-                "{}",
+            ],
+            td![
                 calc_paces(&model.base_pace, &PaceCategory::M1600).print_pace_formatted()
-            )],
-            td![format!(
-                "{}",
+            ],
+            td![
+
                 calc_paces(&model.base_pace, &PaceCategory::K2).print_pace_formatted()
-            )],
+            ],
         ],
     ]
 }
@@ -165,18 +164,14 @@ fn tempo_table<T: 'static>(model: &Model) -> Node<T> {
         C!["table table-bordered table-hover"],
         tr![th!["Short"], th!["Mid"], th!["Long"],],
         tr![
-            td![format!(
-                "{}",
+            td![
                 calc_paces(&model.base_pace, &PaceCategory::ShortTempo).print_pace_formatted()
-            )],
-            td![format!(
-                "{}",
-                calc_paces(&model.base_pace, &PaceCategory::MidTempo).print_pace_formatted()
-            )],
-            td![format!(
-                "{}",
+            ],
+            td![calc_paces(&model.base_pace, &PaceCategory::MidTempo).print_pace_formatted()
+            ],
+            td![
                 calc_paces(&model.base_pace, &PaceCategory::LongTempo).print_pace_formatted()
-            )],
+            ],
         ],
     ]
 }
@@ -197,28 +192,25 @@ fn long_run_table<T: 'static>(model: &Model) -> Node<T> {
 }*/
 fn schedule_table_row<T: 'static>(
     week: i32,
-    workouts: &Vec<Workout>,
+    workouts: &[Workout],
     dummy: &Workout,
     model: &Model,
 ) -> Node<T> {
     tr![
         td![workouts
             .iter()
-            .filter(|w| w.week == week && w.workout_type == WorkoutType::Interval)
-            .nth(0)
-            .unwrap_or(&dummy)
+            .find(|w| w.week == week && w.workout_type == WorkoutType::Interval)
+            .unwrap_or(dummy)
             .show_with_pace(model.base_pace)],
         td![workouts
             .iter()
-            .filter(|w| w.week == week && w.workout_type == WorkoutType::Tempo)
-            .nth(0)
-            .unwrap_or(&dummy)
+            .find(|w| w.week == week && w.workout_type == WorkoutType::Tempo)
+            .unwrap_or(dummy)
             .show_with_pace(model.base_pace)],
         td![workouts
             .iter()
-            .filter(|w| w.week == week && w.workout_type == WorkoutType::Long)
-            .nth(0)
-            .unwrap_or(&dummy)
+            .find(|w| w.week == week && w.workout_type == WorkoutType::Long)
+            .unwrap_or(dummy)
             .show_with_pace(model.base_pace)]
     ]
 }
@@ -243,7 +235,7 @@ fn schedule_table<T: 'static>(model: &Model) -> Node<T> {
     let r = 1..16;
     let mut wks: Vec<Node<T>> = Vec::new();
     for i in r {
-        wks.push(schedule_table_row(i, &workouts, &dummy, &model));
+        wks.push(schedule_table_row(i, &workouts, &dummy, model));
     }
 
     table![C!["table table-bordered"], wks]
@@ -255,7 +247,7 @@ fn plus_button_group() -> Node<Msg> {
 fn minus_button_group() -> Node<Msg> {
     div![C!["btn-group"], minus_button(), minus_ten_button()]
 }
-fn assembled_view(model: &Model, heading: &String) -> Node<Msg> {
+fn assembled_view(model: &Model, heading: &str) -> Node<Msg> {
     div![
         style! {
             "background-color" => "white",
@@ -308,7 +300,7 @@ pub trait PacePrinter {
 impl PacePrinter for chrono::Duration {
     fn print_pace_formatted(&self) -> String {
         if self.num_minutes() > 60 {
-            format!("hours...")
+            "hours...".to_string()
         } else {
             let minutes_to_display = self.num_minutes();
             let dur_submin: chrono::Duration;
@@ -323,8 +315,8 @@ impl PacePrinter for chrono::Duration {
         }
     }
 }
-#[derive(Clone)]
-enum PaceCategory {
+#[derive(Clone,Debug)]
+pub enum PaceCategory {
     M400,
     M600,
     M800,
@@ -366,7 +358,7 @@ fn calc_paces(base_pace: &chrono::Duration, ps: &PaceCategory) -> chrono::Durati
             result = base_pace.checked_sub(&chrono::Duration::seconds(0));
         }
         PaceCategory::MidTempo => {
-            result = base_pace.checked_add(&chrono::Duration::seconds(09));
+            result = base_pace.checked_add(&chrono::Duration::seconds(9));
         }
         PaceCategory::LongTempo => {
             result = base_pace.checked_add(&chrono::Duration::seconds(18));
@@ -378,18 +370,18 @@ fn calc_paces(base_pace: &chrono::Duration, ps: &PaceCategory) -> chrono::Durati
     if let Some(x) = result {
         x
     } else {
-        base_pace.clone()
+        *base_pace // .clone()
     }
 }
 
-#[derive(PartialEq, Clone)]
-enum WorkoutType {
+#[derive(PartialEq, Clone, Debug)]
+pub enum WorkoutType {
     Interval,
     Tempo,
     Long,
 }
-#[derive(Clone)]
-struct Workout {
+#[derive(Clone, Debug )]
+pub struct Workout {
     week: i32,
     description: String,
     workout_type: WorkoutType,
