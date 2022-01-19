@@ -6,8 +6,10 @@ use std::fmt;
 extern crate chrono;
 use crate::WorkoutType::{Interval, Long, Tempo};
 use chrono::Duration;
+use serde::{Deserialize, Serialize};
 use std::fmt::Formatter;
-
+pub mod workout;
+use workout::{Workout, PaceCategory, WorkoutType, PacePrinter, calc_paces};
 // ------ ------
 //     Init
 // ------ ------
@@ -128,33 +130,13 @@ fn interval_table<T: 'static>(model: &Model) -> Node<T> {
             th!["2k"],
         ],
         tr![
-            td![
-
-                calc_paces(&model.base_pace, &PaceCategory::M400).print_pace_formatted()
-            ],
-            td![
-
-                calc_paces(&model.base_pace, &PaceCategory::M600).print_pace_formatted()
-            ],
-            td![
-
-                calc_paces(&model.base_pace, &PaceCategory::M800).print_pace_formatted()
-            ],
-            td![
-
-                calc_paces(&model.base_pace, &PaceCategory::K1).print_pace_formatted()
-            ],
-            td![
-
-                calc_paces(&model.base_pace, &PaceCategory::M1200).print_pace_formatted()
-            ],
-            td![
-                calc_paces(&model.base_pace, &PaceCategory::M1600).print_pace_formatted()
-            ],
-            td![
-
-                calc_paces(&model.base_pace, &PaceCategory::K2).print_pace_formatted()
-            ],
+            td![calc_paces(&model.base_pace, &PaceCategory::M400).print_pace_formatted()],
+            td![calc_paces(&model.base_pace, &PaceCategory::M600).print_pace_formatted()],
+            td![calc_paces(&model.base_pace, &PaceCategory::M800).print_pace_formatted()],
+            td![calc_paces(&model.base_pace, &PaceCategory::K1).print_pace_formatted()],
+            td![calc_paces(&model.base_pace, &PaceCategory::M1200).print_pace_formatted()],
+            td![calc_paces(&model.base_pace, &PaceCategory::M1600).print_pace_formatted()],
+            td![calc_paces(&model.base_pace, &PaceCategory::K2).print_pace_formatted()],
         ],
     ]
 }
@@ -164,14 +146,9 @@ fn tempo_table<T: 'static>(model: &Model) -> Node<T> {
         C!["table table-bordered table-hover"],
         tr![th!["Short"], th!["Mid"], th!["Long"],],
         tr![
-            td![
-                calc_paces(&model.base_pace, &PaceCategory::ShortTempo).print_pace_formatted()
-            ],
-            td![calc_paces(&model.base_pace, &PaceCategory::MidTempo).print_pace_formatted()
-            ],
-            td![
-                calc_paces(&model.base_pace, &PaceCategory::LongTempo).print_pace_formatted()
-            ],
+            td![calc_paces(&model.base_pace, &PaceCategory::ShortTempo).print_pace_formatted()],
+            td![calc_paces(&model.base_pace, &PaceCategory::MidTempo).print_pace_formatted()],
+            td![calc_paces(&model.base_pace, &PaceCategory::LongTempo).print_pace_formatted()],
         ],
     ]
 }
@@ -294,129 +271,3 @@ pub fn start() {
 // ------ ------
 //     Misc
 // ------ ------
-pub trait PacePrinter {
-    fn print_pace_formatted(&self) -> String;
-}
-impl PacePrinter for chrono::Duration {
-    fn print_pace_formatted(&self) -> String {
-        if self.num_minutes() > 60 {
-            "hours...".to_string()
-        } else {
-            let minutes_to_display = self.num_minutes();
-            let dur_submin: chrono::Duration;
-            if let Some(x) = self.checked_sub(&Duration::minutes(self.num_minutes())) {
-                dur_submin = x
-            } else {
-                dur_submin = chrono::Duration::seconds(0)
-            }
-
-            let seconds_to_display = dur_submin.num_seconds();
-            format!("{:02}:{:02}min/km", minutes_to_display, seconds_to_display)
-        }
-    }
-}
-#[derive(Clone,Debug)]
-pub enum PaceCategory {
-    M400,
-    M600,
-    M800,
-    K1,
-    M1200,
-    M1600,
-    K2,
-    ShortTempo,
-    MidTempo,
-    LongTempo,
-    Long,
-}
-
-fn calc_paces(base_pace: &chrono::Duration, ps: &PaceCategory) -> chrono::Duration {
-    let mut result = base_pace.checked_add(&chrono::Duration::seconds(0));
-    match ps {
-        PaceCategory::M400 => {
-            result = base_pace.checked_sub(&chrono::Duration::seconds(37));
-        }
-        PaceCategory::M600 => {
-            result = base_pace.checked_sub(&chrono::Duration::seconds(34));
-        }
-        PaceCategory::M800 => {
-            result = base_pace.checked_sub(&chrono::Duration::seconds(31));
-        }
-        PaceCategory::K1 => {
-            result = base_pace.checked_sub(&chrono::Duration::seconds(29));
-        }
-        PaceCategory::M1200 => {
-            result = base_pace.checked_sub(&chrono::Duration::seconds(27));
-        }
-        PaceCategory::M1600 => {
-            result = base_pace.checked_sub(&chrono::Duration::seconds(24));
-        }
-        PaceCategory::K2 => {
-            result = base_pace.checked_sub(&chrono::Duration::seconds(21));
-        }
-        PaceCategory::ShortTempo => {
-            result = base_pace.checked_sub(&chrono::Duration::seconds(0));
-        }
-        PaceCategory::MidTempo => {
-            result = base_pace.checked_add(&chrono::Duration::seconds(9));
-        }
-        PaceCategory::LongTempo => {
-            result = base_pace.checked_add(&chrono::Duration::seconds(18));
-        }
-        PaceCategory::Long => {
-            result = base_pace.checked_add(&chrono::Duration::seconds(30)); //todo
-        }
-    }
-    if let Some(x) = result {
-        x
-    } else {
-        *base_pace // .clone()
-    }
-}
-
-#[derive(PartialEq, Clone, Debug)]
-pub enum WorkoutType {
-    Interval,
-    Tempo,
-    Long,
-}
-#[derive(Clone, Debug )]
-pub struct Workout {
-    week: i32,
-    description: String,
-    workout_type: WorkoutType,
-    pace_category: PaceCategory,
-    distance: String, //eg 2k
-}
-
-impl fmt::Display for Workout {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "w{} : {} {}", self.week, self.description, self.distance,)
-    }
-}
-impl Workout {
-    pub fn new(
-        week: i32,
-        description: String,
-        workout_type: WorkoutType,
-        pace_category: PaceCategory,
-        distance: String,
-    ) -> Self {
-        Self {
-            week,
-            description,
-            workout_type,
-            pace_category,
-            distance,
-        }
-    }
-    pub fn show_with_pace(&self, d: Duration) -> String {
-        format!(
-            "w{} : {} {} @ {}",
-            self.week,
-            self.description,
-            self.distance,
-            calc_paces(&d, &self.pace_category).print_pace_formatted()
-        )
-    }
-}
