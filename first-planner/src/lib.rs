@@ -9,7 +9,7 @@ use chrono::Duration;
 use serde::{Deserialize, Serialize};
 use std::fmt::Formatter;
 pub mod workout;
-use workout::{Workout, PaceCategory, WorkoutType, PacePrinter, calc_paces};
+use workout::{calc_paces, PaceCategory, PacePrinter, Workout, WorkoutType};
 // ------ ------
 //     Init
 // ------ ------
