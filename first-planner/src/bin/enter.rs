@@ -53,15 +53,9 @@ fn read_csv() -> Result<Vec<Workout>, Box<dyn Error>> {
     let mut results: Vec<Workout> = Vec::new();
     let mut rdr = csv::Reader::from_reader(io::stdin());
 
-    if let Ok(result) = rdr.headers() {
-        println!("{:?}", result);
-    }
-
     for result in rdr.deserialize() {
         let record: Workout = result?;
-        println!("w {:?}", record);
         results.push(record.clone());
-        println!("v{:?}", &results);
     }
     Ok(results)
 }
@@ -70,11 +64,11 @@ fn main() -> rusqlite::Result<()> {
     let args = Args::parse();
     let workouts: Vec<Workout>;
 
-    println!("Tag: {}", args.tag);
-    println!("Reading csv from stdin.");
+    println!("Info: tag: {}", args.tag);
+    println!("Info: db: {}", args.db);
+    println!("Info: Reading csv from stdin."); //todo
 
     if let Ok(x) = read_csv() {
-        println!("read: {:?}", x);
         workouts = x;
     } else {
         println!("error reading csv");
@@ -85,6 +79,5 @@ fn main() -> rusqlite::Result<()> {
     let conn = Connection::open(args.db)?;
     create_db(&conn)?;
     insert(&workouts, &conn)?;
-    println!("inserted");
     Ok(())
 }
