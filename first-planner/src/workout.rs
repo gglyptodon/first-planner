@@ -1,7 +1,7 @@
 use chrono::Duration;
 use serde::{Deserialize, Serialize};
 use std::fmt;
-use std::fmt::Formatter;
+use std::fmt::{write, Formatter};
 
 #[derive(PartialEq, Clone, Debug, Serialize, Deserialize)]
 pub enum WorkoutType {
@@ -23,6 +23,23 @@ impl fmt::Display for Workout {
         write!(f, "w{} : {} {}", self.week, self.description, self.distance,)
     }
 }
+
+impl fmt::Display for WorkoutType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            WorkoutType::Interval => {
+                write!(f, "Interval")
+            }
+            WorkoutType::Tempo => {
+                write!(f, "Tempo")
+            }
+            WorkoutType::Long => {
+                write!(f, "Long")
+            }
+        }
+    }
+}
+
 impl Workout {
     pub fn new(
         week: i32,

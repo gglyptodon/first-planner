@@ -1,6 +1,6 @@
 use clap::Parser;
 use first_planner::workout::{TaggedWorkout, Workout};
-use rusqlite::{Connection, named_params, params, Result};
+use rusqlite::{params, Connection, Result};
 use serde_rusqlite::*;
 use std::error::Error;
 use std::io;
@@ -14,6 +14,9 @@ struct Args {
 
     #[clap(short, long, default_value = "wo.db")]
     db: String,
+
+    #[clap(short, long, takes_value = false)]
+    update: bool,
 }
 
 fn create_db(connection: &Connection) -> Result<(), rusqlite::Error> {
@@ -24,61 +27,32 @@ fn create_db(connection: &Connection) -> Result<(), rusqlite::Error> {
              workout_type text not null,
              pace_category text not null,
              description text,
-             distance text
+             distance text,
+            UNIQUE(tag, week, workout_type)
          )",
         [],
     )?;
 
     Ok(())
 }
-fn insert_or_update(
-    workouts: &[Workout],
-    connection: &Connection,
-    tag: &str,
-) -> rusqlite::Result<()> {
-    //INSERT OR IGNORE INTO my_table (name, age) VALUES ('Karen', 34)
-    //UPDATE my_table SET age = 34 WHERE name='Karen'
-   // fn insert(conn: &Connection) -> Result<()> {
+fn update(workouts: &[Workout], connection: &Connection, tag: &str) -> rusqlite::Result<()> {
+    for w in workouts {
         let mut stmt = connection.prepare(
-            "UPDATE workouts SET description = 'overwritten' WHERE tag = ? AND week = ? AND workout_type = ?"
+            "UPDATE workouts SET description = ?, distance =?  WHERE tag = ? AND week = ? AND workout_type = ?"
         )?;
-        // The `rusqlite::named_params!` macro (like `params!`) is useful for heterogeneous
-        // sets of parameters (where all parameters are not the same type), or for queries
-        // with many (more than 32) statically known parameters.
-            stmt.execute(params!["test", 16, "Interval"])?;
-    // However, named parameters can also be passed like:
-        //stmt.execute(&[(":key", "three"), (":val", "four")])?;
-        // Or even: (note that a &T is required for the value type, currently)
-        //stmt.execute(&[(":key", &100), (":val", &200)])?;
-        Ok(())
-   // }
 
-   /* for w in workouts {
-        let tagged = TaggedWorkout::new(w.clone(), tag.to_string());
-        connection.execute(
-            "INSERT OR IGNORE INTO workouts (tag, week, workout_type, pace_category, description, distance )
-                      VALUES ( :tag, :week, :workout_type, :pace_category, :description, :distance)
-                      UPDATE workouts SET description = :description
-                      WHERE tag = :tag AND week = :week AND workout_type = :workout_type
-                      ",
-            to_params_named_with_fields(
-                &tagged,
-                &[
-                    "tag",
-                    "week",
-                    "workout_type",
-                    "pace_category",
-                    "description",
-                    "distance"
-                ],
-            )
-            .unwrap()
-            .to_slice()
-            .as_slice(),
-        )?;
+        stmt.execute(params![
+            w.description,
+            w.distance,
+            tag,
+            w.week,
+            w.workout_type.to_string()
+        ])?;
     }
-    Ok(())*/
+
+    Ok(())
 }
+
 fn insert(workouts: &[Workout], connection: &Connection, tag: &str) -> rusqlite::Result<()> {
     for w in workouts {
         let tagged = TaggedWorkout::new(w.clone(), tag.to_string());
@@ -121,6 +95,7 @@ fn main() -> rusqlite::Result<()> {
 
     println!("Info: tag: {}", args.tag);
     println!("Info: db: {}", args.db);
+    println!("Info: update: {}", args.update);
     println!("Info: Reading csv from stdin."); //todo
 
     if let Ok(x) = read_csv() {
@@ -133,6 +108,13 @@ fn main() -> rusqlite::Result<()> {
     //create table if it doesn't exist
     let conn = Connection::open(args.db)?;
     create_db(&conn)?;
-    insert_or_update(&workouts, &conn, &args.tag)?;
+
+    if args.update {
+        update(&workouts, &conn, &args.tag)?;
+    } else if let Err(e) = insert(&workouts, &conn, &args.tag) {
+        println!("Error {}. Maybe try --update", e);
+        process::exit(1);
+    }
+
     Ok(())
 }
