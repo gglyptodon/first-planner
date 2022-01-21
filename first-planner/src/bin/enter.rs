@@ -1,5 +1,5 @@
 use clap::Parser;
-use first_planner::workout::{TaggedWorkout, Workout};
+use first_planner::workout::{PaceCategory, TaggedWorkout, Workout, WorkoutType};
 use rusqlite::{params, Connection, Result};
 use serde_rusqlite::*;
 use std::error::Error;
@@ -12,7 +12,7 @@ struct Args {
     #[clap(short, long)]
     tag: String,
 
-    #[clap(short, long, default_value = "wo.db")]
+    #[clap(short, long, default_value = "./app.db")]
     db: String,
 
     #[clap(short, long, takes_value = false)]
@@ -107,8 +107,9 @@ fn main() -> rusqlite::Result<()> {
 
     //create table if it doesn't exist
     let conn = Connection::open(args.db)?;
-    create_db(&conn)?;
 
+    create_db(&conn)?;
+    get_all_rows(&conn)?;
     if args.update {
         update(&workouts, &conn, &args.tag)?;
     } else if let Err(e) = insert(&workouts, &conn, &args.tag) {
@@ -116,5 +117,33 @@ fn main() -> rusqlite::Result<()> {
         process::exit(1);
     }
 
+    Ok(())
+}
+
+fn get_all_rows(connection: &Connection) -> rusqlite::Result<()> {
+    let mut stmt = connection.prepare(
+        "SELECT tag, week, description,workout_type,pace_category, distance FROM workouts",
+    )?;
+    let workout_iter = stmt
+        .query_map([], |row| {
+            let pace_cat: String = row.get(3).unwrap();
+            let wo_type: String = row.get(2).unwrap();
+            let tag: String = row.get(0).unwrap();
+
+            Ok((
+                tag,
+                Workout {
+                    week: row.get(1)?,
+                    description: row.get(2)?,
+                    pace_category: PaceCategory::new(pace_cat), //todo
+                    workout_type: WorkoutType::new(wo_type),
+                    distance: row.get(4)?,
+                },
+            ))
+        })
+        .unwrap();
+    for w in workout_iter {
+        println!("Found  {:?}", w.unwrap());
+    }
     Ok(())
 }

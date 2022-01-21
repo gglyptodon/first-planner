@@ -1,7 +1,7 @@
 use chrono::Duration;
 use serde::{Deserialize, Serialize};
 use std::fmt;
-use std::fmt::{write, Formatter};
+use std::fmt::Formatter;
 
 #[derive(PartialEq, Clone, Debug, Serialize, Deserialize)]
 pub enum WorkoutType {
@@ -9,6 +9,18 @@ pub enum WorkoutType {
     Tempo,
     Long,
 }
+
+impl WorkoutType {
+    pub fn new(input: String) -> Self {
+        match input.as_str() {
+            "Interval" => WorkoutType::Interval,
+            "Tempo" => WorkoutType::Tempo,
+            "Long" => WorkoutType::Long,
+            _ => WorkoutType::Long,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Workout {
     pub week: i32,
@@ -123,6 +135,25 @@ pub enum PaceCategory {
     MidTempo,
     LongTempo,
     Long,
+}
+
+impl PaceCategory {
+    pub fn new(input: String) -> Self {
+        match input.as_str() {
+            "M400" => PaceCategory::M400,
+            "M600" => PaceCategory::M600,
+            "M800" => PaceCategory::M800,
+            "K1" => PaceCategory::K1,
+            "M1200" => PaceCategory::M1200,
+            "M1600" => PaceCategory::M1600,
+            "K2" => PaceCategory::K2,
+            "ShortTempo" => PaceCategory::ShortTempo,
+            "MidTempo" => PaceCategory::MidTempo,
+            "LongTempo" => PaceCategory::LongTempo,
+            "Long" => PaceCategory::Long,
+            _ => PaceCategory::K1,
+        }
+    }
 }
 
 pub trait PacePrinter {
