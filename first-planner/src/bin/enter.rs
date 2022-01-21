@@ -1,5 +1,5 @@
 use clap::Parser;
-use first_planner::workout::Workout;
+use first_planner::workout::{TaggedWorkout, Workout};
 use rusqlite::{Connection, Result};
 use serde_rusqlite::*;
 use std::error::Error;
@@ -30,15 +30,21 @@ fn create_db(connection: &Connection) -> Result<(), rusqlite::Error> {
 
     Ok(())
 }
-fn insert(workouts: &[Workout], connection: &Connection) -> rusqlite::Result<()> {
+fn insert(workouts: &[Workout], connection: &Connection, tag: &str) -> rusqlite::Result<()> {
     for w in workouts {
+        let tagged = TaggedWorkout::new(w.clone(), tag.to_string());
         connection.execute(
             "INSERT INTO workouts (tag, week, workout_type, pace_category, description )
-            VALUES ( 'test', :week, :workout_type, :pace_category, :description)
-           ",
+                      VALUES ( :tag, :week, :workout_type, :pace_category, :description)",
             to_params_named_with_fields(
-                &w,
-                &["week", "workout_type", "pace_category", "description"],
+                &tagged,
+                &[
+                    "tag",
+                    "week",
+                    "workout_type",
+                    "pace_category",
+                    "description",
+                ],
             )
             .unwrap()
             .to_slice()
@@ -78,6 +84,6 @@ fn main() -> rusqlite::Result<()> {
     //create table if it doesn't exist
     let conn = Connection::open(args.db)?;
     create_db(&conn)?;
-    insert(&workouts, &conn)?;
+    insert(&workouts, &conn, &args.tag)?;
     Ok(())
 }

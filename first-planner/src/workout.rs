@@ -129,3 +129,26 @@ impl PacePrinter for chrono::Duration {
         }
     }
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct TaggedWorkout {
+    pub week: i32,
+    pub description: String,
+    pub workout_type: WorkoutType,
+    pub pace_category: PaceCategory,
+    pub distance: String,
+    pub tag: String,
+}
+impl TaggedWorkout {
+    //todo: refactor
+    pub fn new(workout: Workout, tag: String) -> Self {
+        TaggedWorkout {
+            week: workout.week,
+            description: workout.description,
+            workout_type: workout.workout_type,
+            pace_category: workout.pace_category,
+            distance: workout.distance,
+            tag,
+        }
+    }
+}
