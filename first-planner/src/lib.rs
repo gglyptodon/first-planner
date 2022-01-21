@@ -1,12 +1,11 @@
 #![allow(clippy::wildcard_imports)]
 
 use seed::{prelude::*, *};
-
 extern crate chrono;
-use crate::WorkoutType::{Interval, Long, Tempo};
 use chrono::Duration;
 pub mod workout;
 use workout::{calc_paces, PaceCategory, PacePrinter, Workout, WorkoutType};
+
 // ------ ------
 //     Init
 // ------ ------
@@ -194,7 +193,7 @@ fn schedule_table<T: 'static>(model: &Model) -> Node<T> {
     workouts.push(Workout::new(
         1,
         "+10-20min WA/CD".to_string(),
-        Interval,
+        WorkoutType::Interval,
         PaceCategory::M400,
         "8x 400m".to_string(),
     ));
