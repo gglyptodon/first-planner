@@ -1,13 +1,10 @@
 #![allow(clippy::wildcard_imports)]
 
 use seed::{prelude::*, *};
-use std::fmt;
 
 extern crate chrono;
 use crate::WorkoutType::{Interval, Long, Tempo};
 use chrono::Duration;
-use serde::{Deserialize, Serialize};
-use std::fmt::Formatter;
 pub mod workout;
 use workout::{calc_paces, PaceCategory, PacePrinter, Workout, WorkoutType};
 // ------ ------
