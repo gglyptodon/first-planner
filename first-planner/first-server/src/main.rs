@@ -40,13 +40,14 @@ pub struct CreateWorkout {
     description: String,
     distance: String,
     workout_type: String,
+    pace_category: String,
 
 }
 
 pub fn create(workout: web::Json<CreateWorkout>, req: HttpRequest) -> impl Responder {
     println!("req {:?}", req);
     println!("mod {:?}", workout);
-    let result = create_workouts(&*workout.0.tag,workout.0.week, &*workout.0.description, &*workout.0.workout_type, &*workout.0.distance);
+    let result = create_workouts(&*workout.0.tag,workout.0.week, &*workout.0.description, &*workout.0.workout_type,  &* workout.0.pace_category, &*workout.0.distance);
     HttpResponse::Ok().json(result);
 }
 /*
