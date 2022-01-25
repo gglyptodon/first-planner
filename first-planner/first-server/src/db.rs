@@ -41,7 +41,7 @@ pub fn get_workouts() -> Vec<Workout> {
 }
 */
 
-pub fn create_workouts(t: &str, w: i32, d: &str, wt: &str, dist: &str ) -> String {
+pub fn create_workouts(t: &str, w: i32, d: &str, wt: &str, pc: &str, dist: &str ) -> String {
     let con = establish_connection();
     let uuid = Uuid::new_v4().to_hyphenated().to_string();
     let new_workout = NewWorkout {
@@ -49,6 +49,7 @@ pub fn create_workouts(t: &str, w: i32, d: &str, wt: &str, dist: &str ) -> Strin
         tag: t,
         week: w,
         workout_type: wt,
+        pace_category: pc,
         description: d,
         distance: dist
     };

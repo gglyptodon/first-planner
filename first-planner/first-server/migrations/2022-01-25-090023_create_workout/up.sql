@@ -3,6 +3,7 @@ CREATE TABLE workouts (
     tag VARCHAR NOT NULL,
     week INTEGER NOT NULL,
     workout_type VARCHAR NOT NULL,
+    pace_category VARCHAR NOT NULL,
     description TEXT NOT NULL,
     distance TEXT NOT NULL
   )

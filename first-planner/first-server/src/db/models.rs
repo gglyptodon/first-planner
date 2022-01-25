@@ -7,6 +7,7 @@ pub struct Workout {
     pub tag: String,
     pub week: i32,
     pub workout_type: String,
+    pub pace_category: String,
     pub description: String,
     pub distance: String,
 }
@@ -18,6 +19,7 @@ pub struct NewWorkout<'a> {
     pub tag: &'a str,
     pub week: i32,
     pub workout_type: &'a str,
+    pub pace_category: &'a str,
     pub description: &'a str,
     pub distance: &'a str,
 }
