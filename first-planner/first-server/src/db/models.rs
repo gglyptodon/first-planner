@@ -5,7 +5,7 @@ use serde::Serialize;
 pub struct Workout {
     pub id: String,
     pub tag: String,
-    pub week: Integer,
+    pub week: i32,
     pub workout_type: String,
     pub description: String,
     pub distance: String,

@@ -5,6 +5,6 @@ table! {
         week -> Integer,
         workout_type -> Text,
         description -> Text,
-        distance -> Nullable<Text>,
+        distance -> Text,
     }
 }

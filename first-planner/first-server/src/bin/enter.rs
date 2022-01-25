@@ -1,4 +1,4 @@
-use clap::Parser;
+/*use clap::Parser;
 use first_shared::workout::{PaceCategory, TaggedWorkout, Workout, WorkoutType};
 use rusqlite::{params, Connection, Result};
 use serde_rusqlite::*;
@@ -146,4 +146,8 @@ fn get_all_rows(connection: &Connection) -> rusqlite::Result<()> {
         println!("Found  {:?}", w.unwrap());
     }
     Ok(())
+}
+*/
+fn main(){
+    println!("todo");
 }

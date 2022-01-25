@@ -4,6 +4,5 @@ CREATE TABLE workouts (
     week INTEGER NOT NULL,
     workout_type VARCHAR NOT NULL,
     description TEXT NOT NULL,
-    distance TEXT,
-   UNIQUE(tag, week, workout_type)
+    distance TEXT NOT NULL
   )
