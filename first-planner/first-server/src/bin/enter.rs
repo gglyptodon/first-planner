@@ -148,6 +148,6 @@ fn get_all_rows(connection: &Connection) -> rusqlite::Result<()> {
     Ok(())
 }
 */
-fn main(){
+fn main() {
     println!("todo");
 }
