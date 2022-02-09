@@ -28,6 +28,14 @@ pub fn get_workouts() -> Vec<Workout> {
         .expect("Error loading ")
 }
 
+pub fn get_workouts_week(week_nr: i32) -> Vec<Workout> {
+    let con = establish_connection();
+    workouts
+        .filter(week.eq(week_nr))
+        .limit(5)
+        .load::<Workout>(&con)
+        .expect("Error loading ")
+}
 
 pub fn create_workouts(t: &str, w: i32, d: &str, wt: &str, pc: &str, dist: &str) -> String {
     let con = establish_connection();

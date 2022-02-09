@@ -6,7 +6,7 @@ extern crate diesel;
 
 extern crate dotenv;
 mod db;
-use crate::db::{create_workouts, get_workouts};
+use crate::db::{create_workouts, get_workouts, get_workouts_week};
 use crate::schema::workouts::dsl::workouts;
 use actix_cors::Cors;
 use actix_web::http::header;
@@ -27,6 +27,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .service(index)
             .service(create)
+            .service(index_week)
     })
     .bind("127.0.0.1:8000")?
     .run()
@@ -38,6 +39,12 @@ async fn index() -> impl Responder {
     let o_workouts = get_workouts();
     HttpResponse::Ok().json(o_workouts)
 }
+#[get("/workouts/week/{week_nr}")]
+async fn index_week(path: web::Path<(u32,)>) -> impl Responder {
+    let o_workouts = get_workouts_week(path.into_inner().0 as i32);
+    HttpResponse::Ok().json(o_workouts)
+}
+
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateWorkout {
